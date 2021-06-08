@@ -5,7 +5,7 @@ from src.RSimp import cmd_line_globals
 
 class ARType(Enum):
     PROGRAM = 'PROGRAM'
-    PROCEDURE = 'PROCEDURE'
+    FUNCTION = 'FUNCTION'
 
 
 class CallStack:
@@ -31,8 +31,7 @@ class CallStack:
 
 
 class ActivationRecord:
-    def __init__(self, name, type, nesting_level):
-        self.name = name
+    def __init__(self, type, nesting_level):
         self.type = type
         self.nesting_level = nesting_level
         self.members = {}
@@ -48,10 +47,9 @@ class ActivationRecord:
 
     def __str__(self):
         lines = [
-            '{level}: {type} {name}'.format(
+            '{level}: {type}'.format(
                 level=self.nesting_level,
                 type=self.type.value,
-                name=self.name,
             )
         ]
         for name, val in self.members.items():
@@ -74,11 +72,7 @@ class Interpreter(NodeVisitor):
             print(msg)
 
     def visit_Program(self, node):
-        program_name = node.name
-        self.log(f'ENTER: PROGRAM {program_name}')
-
         ar = ActivationRecord(
-            name=program_name,
             type=ARType.PROGRAM,
             nesting_level=1,
         )
@@ -88,14 +82,11 @@ class Interpreter(NodeVisitor):
 
         self.visit(node.block)
 
-        self.log(f'LEAVE: PROGRAM {program_name}')
         self.log(str(self.call_stack))
 
         self.call_stack.pop()
 
     def visit_Block(self, node):
-        for declaration in node.declarations:
-            self.visit(declaration)
         self.visit(node.compound_statement)
 
     def visit_VarDecl(self, node):
@@ -113,7 +104,7 @@ class Interpreter(NodeVisitor):
             return self.visit(node.left) - self.visit(node.right)
         elif node.op.type == TokenType.MUL:
             return self.visit(node.left) * self.visit(node.right)
-        elif node.op.type == TokenType.INTEGER_DIV:
+        elif node.op.type == TokenType.FLOAT_DIV:
             return self.visit(node.left) // self.visit(node.right)
         elif node.op.type == TokenType.FLOAT_DIV:
             return float(self.visit(node.left)) / float(self.visit(node.right))
@@ -158,8 +149,7 @@ class Interpreter(NodeVisitor):
         proc_symbol = node.proc_symbol
 
         ar = ActivationRecord(
-            name=proc_name,
-            type=ARType.PROCEDURE,
+            type=ARType.FUNCTION,
             nesting_level=proc_symbol.scope_level + 1,
         )
 

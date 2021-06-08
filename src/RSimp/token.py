@@ -1,31 +1,55 @@
 from enum import Enum
 
 class TokenType(Enum):
-    # single-character token types
+    # Arithmetic Operators
     PLUS          = '+'
     MINUS         = '-'
     MUL           = '*'
     FLOAT_DIV     = '/'
+    POWER         = '^'
+    MODULO        = '%'
+
+    # Relational Operators
+    GREATER_THAN  = '>'
+    LESS_THAN     = '<'
+    EQUALITY      = '=='
+    LESS_OR_EQUAL = '<='
+    GREAT_OR_EQUAL= '>='
+    NOT_EQUAL     = '!='
+
+    # Logical Operators
+    AND           = '&'
+    OR            = '|'
+    NOT           = '!'
+    LOGIC_AND     = '&&'
+    LOGIC_OR      = '||'
+
+    # Assignment Operators
+    ASSIGN        = '='
+    LEFT_ASSIGN   = '<-'
+
+    # Syntax
     LPAREN        = '('
     RPAREN        = ')'
     SEMI          = ';'
     DOT           = '.'
     COLON         = ':'
     COMMA         = ','
+    LCURLY        = '{'
+    RCURLY        = '}'      # marks the end of the block
+
+    # Control Structures
+    IF            = 'if'
+    WHILE         = 'while'
+    FOR           = 'for'
+
     # block of reserved words
-    PROGRAM       = 'PROGRAM'  # marks the beginning of the block
-    INTEGER       = 'INTEGER'
-    REAL          = 'REAL'
-    INTEGER_DIV   = 'DIV'
-    VAR           = 'VAR'
-    PROCEDURE     = 'PROCEDURE'
-    BEGIN         = 'BEGIN'
-    END           = 'END'      # marks the end of the block
+    NUMERIC       = 'NUMERIC'
+    FUNCTION     = 'function'
+
     # misc
     ID            = 'ID'
-    INTEGER_CONST = 'INTEGER_CONST'
-    REAL_CONST    = 'REAL_CONST'
-    ASSIGN        = ':='
+    IN            = 'in'
     EOF           = 'EOF'
 
 
@@ -71,8 +95,8 @@ def _build_reserved_keywords():
     """
     # enumerations support iteration, in definition order
     tt_list = list(TokenType)
-    start_index = tt_list.index(TokenType.PROGRAM)
-    end_index = tt_list.index(TokenType.END)
+    start_index = tt_list.index(TokenType.IF)
+    end_index = tt_list.index(TokenType.EOF)
     reserved_keywords = {
         token_type.value: token_type
         for token_type in tt_list[start_index:end_index + 1]

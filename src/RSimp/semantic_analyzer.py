@@ -10,14 +10,13 @@ class Symbol:
 
 
 class VarSymbol(Symbol):
-    def __init__(self, name, type):
-        super().__init__(name, type)
+    def __init__(self, name):
+        super().__init__(name)
 
     def __str__(self):
-        return "<{class_name}(name='{name}', type='{type}')>".format(
+        return "<{class_name}(name='{name}')>".format(
             class_name=self.__class__.__name__,
-            name=self.name,
-            type=self.type,
+            name=self.name
         )
 
     __repr__ = __str__
@@ -128,8 +127,6 @@ class SemanticAnalyzer(NodeVisitor):
         )
 
     def visit_Block(self, node):
-        for declaration in node.declarations:
-            self.visit(declaration)
         self.visit(node.compound_statement)
 
     def visit_Program(self, node):
@@ -177,9 +174,9 @@ class SemanticAnalyzer(NodeVisitor):
 
         # Insert parameters into the procedure scope
         for param in node.formal_params:
-            param_type = self.current_scope.lookup(param.type_node.value)
+            # param_type = self.current_scope.lookup(param.type_node.value)
             param_name = param.var_node.value
-            var_symbol = VarSymbol(param_name, param_type)
+            var_symbol = VarSymbol(param_name)
             self.current_scope.insert(var_symbol)
             proc_symbol.formal_params.append(var_symbol)
 
@@ -193,24 +190,24 @@ class SemanticAnalyzer(NodeVisitor):
         # accessed by the interpreter when executing procedure call
         proc_symbol.block_ast = node.block_node
 
-    def visit_VarDecl(self, node):
-        type_name = node.type_node.value
-        type_symbol = self.current_scope.lookup(type_name)
+    # def visit_VarDecl(self, node):
+    #     type_name = node.type_node.value
+    #     type_symbol = self.current_scope.lookup(type_name)
 
-        # We have all the information we need to create a variable symbol.
-        # Create the symbol and insert it into the symbol table.
-        var_name = node.var_node.value
-        var_symbol = VarSymbol(var_name, type_symbol)
+    #     # We have all the information we need to create a variable symbol.
+    #     # Create the symbol and insert it into the symbol table.
+    #     var_name = node.var_node.value
+    #     var_symbol = VarSymbol(var_name)
 
-        # Signal an error if the table already has a symbol
-        # with the same name
-        if self.current_scope.lookup(var_name, current_scope_only=True):
-            self.error(
-                error_code=ErrorCode.DUPLICATE_ID,
-                token=node.var_node.token,
-            )
+    #     # Signal an error if the table already has a symbol
+    #     # with the same name
+    #     if self.current_scope.lookup(var_name, current_scope_only=True):
+    #         self.error(
+    #             error_code=ErrorCode.DUPLICATE_ID,
+    #             token=node.var_node.token,
+    #         )
 
-        self.current_scope.insert(var_symbol)
+    #     self.current_scope.insert(var_symbol)
 
     def visit_Assign(self, node):
         # right-hand side
@@ -220,9 +217,12 @@ class SemanticAnalyzer(NodeVisitor):
 
     def visit_Var(self, node):
         var_name = node.value
-        var_symbol = self.current_scope.lookup(var_name)
-        if var_symbol is None:
-            self.error(error_code=ErrorCode.ID_NOT_FOUND, token=node.token)
+        var_symbol = VarSymbol(var_name)
+        self.current_scope.insert(var_symbol)
+
+        # var_symbol = self.current_scope.lookup(var_name)
+        # if var_symbol is None:
+        #     self.error(error_code=ErrorCode.ID_NOT_FOUND, token=node.token)
 
     def visit_Num(self, node):
         pass

@@ -45,7 +45,7 @@ class Lexer:
             self.advance()
 
     def skip_comment(self):
-        while self.current_char != '}':
+        while self.current_char != '#':
             self.advance()
         self.advance()  # the closing curly brace
 
@@ -68,11 +68,8 @@ class Lexer:
                 result += self.current_char
                 self.advance()
 
-            token.type = TokenType.REAL_CONST
-            token.value = float(result)
-        else:
-            token.type = TokenType.INTEGER_CONST
-            token.value = int(result)
+        token.type = TokenType.NUMERIC
+        token.value = float(result)
 
         return token
 
@@ -108,7 +105,7 @@ class Lexer:
                 self.skip_whitespace()
                 continue
 
-            if self.current_char == '{':
+            if self.current_char == '#':
                 self.advance()
                 self.skip_comment()
                 continue
@@ -119,10 +116,10 @@ class Lexer:
             if self.current_char.isdigit():
                 return self.number()
 
-            if self.current_char == ':' and self.peek() == '=':
+            if self.current_char == '<' and self.peek() == '-':
                 token = Token(
-                    type=TokenType.ASSIGN,
-                    value=TokenType.ASSIGN.value,  # ':='
+                    type=TokenType.LEFT_ASSIGN,
+                    value=TokenType.LEFT_ASSIGN.value,
                     lineno=self.lineno,
                     column=self.column,
                 )

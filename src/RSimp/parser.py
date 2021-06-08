@@ -1,3 +1,4 @@
+from os import initgroups
 from src.RSimp.errors import ErrorCode, ParserError
 from src.RSimp.token import TokenType 
 
@@ -25,7 +26,7 @@ class UnaryOp(AST):
 
 
 class Compound(AST):
-    """Represents a 'BEGIN ... END' block"""
+    """Represents a '{ ... }' block"""
     def __init__(self):
         self.children = []
 
@@ -49,14 +50,12 @@ class NoOp(AST):
 
 
 class Program(AST):
-    def __init__(self, name, block):
-        self.name = name
+    def __init__(self, block):
         self.block = block
 
 
 class Block(AST):
-    def __init__(self, declarations, compound_statement):
-        self.declarations = declarations
+    def __init__(self, compound_statement):
         self.compound_statement = compound_statement
 
 
@@ -73,9 +72,8 @@ class Type(AST):
 
 
 class Param(AST):
-    def __init__(self, var_node, type_node):
+    def __init__(self, var_node):
         self.var_node = var_node
-        self.type_node = type_node
 
 
 class ProcedureDecl(AST):
@@ -123,45 +121,35 @@ class Parser:
                 token=self.current_token,
             )
 
-    def program(self):
-        """program : PROGRAM variable SEMI block DOT"""
-        self.eat(TokenType.PROGRAM)
-        var_node = self.variable()
-        prog_name = var_node.value
-        self.eat(TokenType.SEMI)
-        block_node = self.block()
-        program_node = Program(prog_name, block_node)
-        self.eat(TokenType.DOT)
-        return program_node
-
     def block(self):
-        """block : declarations compound_statement"""
-        declaration_nodes = self.declarations()
+        """block :  compound_statement"""
         compound_statement_node = self.compound_statement()
-        node = Block(declaration_nodes, compound_statement_node)
+        node = Block(compound_statement_node)
         return node
 
-    def declarations(self):
-        """
-        declarations : (VAR (variable_declaration SEMI)+)? procedure_declaration*
-        """
-        declarations = []
+    def first_pass(self):
+        block_node = self.initial_block()
+        program_node = Program(block_node)
+        self.eat(TokenType.EOF)
+        return program_node
 
-        if self.current_token.type == TokenType.VAR:
-            self.eat(TokenType.VAR)
-            while self.current_token.type == TokenType.ID:
-                var_decl = self.variable_declaration()
-                declarations.extend(var_decl)
-                self.eat(TokenType.SEMI)
+    def initial_block(self):
+        init_compound_statement_node = self.initial_compound_statement()
+        node = Block(init_compound_statement_node)
+        return node
 
-        while self.current_token.type == TokenType.PROCEDURE:
-            proc_decl = self.procedure_declaration()
-            declarations.append(proc_decl)
+    def initial_compound_statement(self):
+        """compound_statement: { statement_list }"""
+        nodes = self.statement_list()
 
-        return declarations
+        root = Compound()
+        for node in nodes:
+            root.children.append(node)
+
+        return root
 
     def formal_parameters(self):
-        """ formal_parameters : ID (COMMA ID)* COLON type_spec """
+        """ formal_parameters : ID (COMMA ID)* """
         param_nodes = []
 
         param_tokens = [self.current_token]
@@ -171,11 +159,8 @@ class Parser:
             param_tokens.append(self.current_token)
             self.eat(TokenType.ID)
 
-        self.eat(TokenType.COLON)
-        type_node = self.type_spec()
-
         for param_token in param_tokens:
-            param_node = Param(Var(param_token), type_node)
+            param_node = Param(Var(param_token))
             param_nodes.append(param_node)
 
         return param_nodes
@@ -196,30 +181,30 @@ class Parser:
 
         return param_nodes
 
-    def variable_declaration(self):
-        """variable_declaration : ID (COMMA ID)* COLON type_spec"""
-        var_nodes = [Var(self.current_token)]  # first ID
-        self.eat(TokenType.ID)
+    # def variable_declaration(self):
+    #     """variable_declaration : ID (COMMA ID)* COLON type_spec"""
+    #     var_nodes = [Var(self.current_token)]  # first ID
+    #     self.eat(TokenType.ID)
 
-        while self.current_token.type == TokenType.COMMA:
-            self.eat(TokenType.COMMA)
-            var_nodes.append(Var(self.current_token))
-            self.eat(TokenType.ID)
+    #     while self.current_token.type == TokenType.COMMA:
+    #         self.eat(TokenType.COMMA)
+    #         var_nodes.append(Var(self.current_token))
+    #         self.eat(TokenType.ID)
 
-        self.eat(TokenType.COLON)
+    #     self.eat(TokenType.COLON)
 
-        type_node = self.type_spec()
-        var_declarations = [
-            VarDecl(var_node, type_node)
-            for var_node in var_nodes
-        ]
-        return var_declarations
+    #     type_node = self.type_spec()
+    #     var_declarations = [
+    #         VarDecl(var_node, type_node)
+    #         for var_node in var_nodes
+    #     ]
+    #     return var_declarations
 
     def procedure_declaration(self):
         """procedure_declaration :
              PROCEDURE ID (LPAREN formal_parameter_list RPAREN)? SEMI block SEMI
         """
-        self.eat(TokenType.PROCEDURE)
+        self.eat(TokenType.FUNCTION)
         proc_name = self.current_token.value
         self.eat(TokenType.ID)
         formal_params = []
@@ -235,25 +220,42 @@ class Parser:
         self.eat(TokenType.SEMI)
         return proc_decl
 
-    def type_spec(self):
-        """type_spec : INTEGER
-                     | REAL
-        """
-        token = self.current_token
-        if self.current_token.type == TokenType.INTEGER:
-            self.eat(TokenType.INTEGER)
-        else:
-            self.eat(TokenType.REAL)
-        node = Type(token)
-        return node
+    def program(self):
+        block_node = self.block()
+        program_node = Program(block_node)
+        self.eat(TokenType.EOF)
+        return program_node
+
+    # def program(self):
+    #     """program : PROGRAM variable SEMI block DOT"""
+    #     self.eat(TokenType.PROGRAM)
+    #     var_node = self.variable()
+    #     prog_name = var_node.value
+    #     self.eat(TokenType.SEMI)
+    #     block_node = self.block()
+    #     program_node = Program(prog_name, block_node)
+    #     self.eat(TokenType.DOT)
+    #     return program_node
+
+    # def type_spec(self):
+    #     """type_spec : INTEGER
+    #                  | REAL
+    #     """
+    #     token = self.current_token
+    #     if self.current_token.type == TokenType.INTEGER:
+    #         self.eat(TokenType.INTEGER)
+    #     else:
+    #         self.eat(TokenType.REAL)
+    #     node = Type(token)
+    #     return node
 
     def compound_statement(self):
         """
-        compound_statement: BEGIN statement_list END
+        compound_statement: { statement_list }
         """
-        self.eat(TokenType.BEGIN)
+        self.eat(TokenType.LCURLY)
         nodes = self.statement_list()
-        self.eat(TokenType.END)
+        self.eat(TokenType.RCURLY)
 
         root = Compound()
         for node in nodes:
@@ -283,7 +285,7 @@ class Parser:
                   | assignment_statement
                   | empty
         """
-        if self.current_token.type == TokenType.BEGIN:
+        if self.current_token.type == TokenType.LCURLY:
             node = self.compound_statement()
         elif (self.current_token.type == TokenType.ID and
               self.lexer.current_char == '('
@@ -367,14 +369,11 @@ class Parser:
 
         while self.current_token.type in (
                 TokenType.MUL,
-                TokenType.INTEGER_DIV,
                 TokenType.FLOAT_DIV,
         ):
             token = self.current_token
             if token.type == TokenType.MUL:
                 self.eat(TokenType.MUL)
-            elif token.type == TokenType.INTEGER_DIV:
-                self.eat(TokenType.INTEGER_DIV)
             elif token.type == TokenType.FLOAT_DIV:
                 self.eat(TokenType.FLOAT_DIV)
 
@@ -399,11 +398,8 @@ class Parser:
             self.eat(TokenType.MINUS)
             node = UnaryOp(token, self.factor())
             return node
-        elif token.type == TokenType.INTEGER_CONST:
-            self.eat(TokenType.INTEGER_CONST)
-            return Num(token)
-        elif token.type == TokenType.REAL_CONST:
-            self.eat(TokenType.REAL_CONST)
+        elif token.type == TokenType.NUMERIC:
+            self.eat(TokenType.NUMERIC)
             return Num(token)
         elif token.type == TokenType.LPAREN:
             self.eat(TokenType.LPAREN)
@@ -446,7 +442,7 @@ class Parser:
                | variable
         variable: ID
         """
-        node = self.program()
+        node = self.first_pass()
         if self.current_token.type != TokenType.EOF:
             self.error(
                 error_code=ErrorCode.UNEXPECTED_TOKEN,

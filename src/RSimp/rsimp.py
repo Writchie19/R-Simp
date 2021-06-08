@@ -18,6 +18,7 @@ class RSimp():
         text = open(file, 'r').read()
 
         lexer = Lexer(text)
+
         try:
             parser = Parser(lexer)
             tree = parser.parse()
