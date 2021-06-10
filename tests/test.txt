@@ -1,2 +1,13 @@
-x = 5 + 3;
-y = x + 7;
+add <- 9 + 4;
+power = add ^ 2;
+addmult = 4 + 2 * 3;
+lessequal = 5 <= 4;
+greaterequal = 5 >= 4;
+equals = 5 == 4;
+notequal = 5 != 4;
+notequaldos = 4 != 4;
+equalsdos = 4 == 4;
+or = 1 | 2;
+logicor = 1 || 2;
+and = 1 & 2;
+logicand = 1 && 2;

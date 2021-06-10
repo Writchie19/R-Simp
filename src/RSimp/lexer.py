@@ -118,8 +118,74 @@ class Lexer:
 
             if self.current_char == '<' and self.peek() == '-':
                 token = Token(
-                    type=TokenType.LEFT_ASSIGN,
-                    value=TokenType.LEFT_ASSIGN.value,
+                    type=TokenType.ASSIGN,
+                    value=TokenType.ASSIGN.value,
+                    lineno=self.lineno,
+                    column=self.column,
+                )
+                self.advance()
+                self.advance()
+                return token
+
+            if self.current_char == '<' and self.peek() == '=':
+                token = Token(
+                    type=TokenType.LESS_OR_EQUAL,
+                    value=TokenType.LESS_OR_EQUAL.value,
+                    lineno=self.lineno,
+                    column=self.column,
+                )
+                self.advance()
+                self.advance()
+                return token
+
+            if self.current_char == '>' and self.peek() == '=':
+                token = Token(
+                    type=TokenType.GREAT_OR_EQUAL,
+                    value=TokenType.GREAT_OR_EQUAL.value,
+                    lineno=self.lineno,
+                    column=self.column,
+                )
+                self.advance()
+                self.advance()
+                return token
+
+            if self.current_char == '=' and self.peek() == '=':
+                token = Token(
+                    type=TokenType.EQUALITY,
+                    value=TokenType.EQUALITY.value,
+                    lineno=self.lineno,
+                    column=self.column,
+                )
+                self.advance()
+                self.advance()
+                return token
+
+            if self.current_char == '!' and self.peek() == '=':
+                token = Token(
+                    type=TokenType.NOT_EQUAL,
+                    value=TokenType.NOT_EQUAL.value,
+                    lineno=self.lineno,
+                    column=self.column,
+                )
+                self.advance()
+                self.advance()
+                return token
+
+            if self.current_char == '&' and self.peek() == '&':
+                token = Token(
+                    type=TokenType.LOGIC_AND,
+                    value=TokenType.LOGIC_AND.value,
+                    lineno=self.lineno,
+                    column=self.column,
+                )
+                self.advance()
+                self.advance()
+                return token
+
+            if self.current_char == '|' and self.peek() == '|':
+                token = Token(
+                    type=TokenType.LOGIC_OR,
+                    value=TokenType.LOGIC_OR.value,
                     lineno=self.lineno,
                     column=self.column,
                 )

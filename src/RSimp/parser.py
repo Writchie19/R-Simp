@@ -352,30 +352,56 @@ class Parser:
         """
         node = self.term()
 
-        while self.current_token.type in (TokenType.PLUS, TokenType.MINUS):
+        while self.current_token.type in (TokenType.PLUS, TokenType.MINUS, TokenType.LESS_THAN, TokenType.LESS_OR_EQUAL, TokenType.GREAT_OR_EQUAL, TokenType.GREATER_THAN, TokenType.NOT_EQUAL, TokenType.EQUALITY, TokenType.LOGIC_OR, TokenType.LOGIC_AND, TokenType.AND, TokenType.OR):
             token = self.current_token
             if token.type == TokenType.PLUS:
                 self.eat(TokenType.PLUS)
             elif token.type == TokenType.MINUS:
                 self.eat(TokenType.MINUS)
+            elif token.type == TokenType.LESS_THAN:
+                self.eat(TokenType.LESS_THAN)
+            elif token.type == TokenType.LESS_OR_EQUAL:
+                self.eat(TokenType.LESS_OR_EQUAL)
+            elif token.type == TokenType.GREAT_OR_EQUAL:
+                self.eat(TokenType.GREAT_OR_EQUAL)
+            elif token.type == TokenType.GREATER_THAN:
+                self.eat(TokenType.GREATER_THAN)
+            elif token.type == TokenType.NOT_EQUAL:
+                self.eat(TokenType.NOT_EQUAL)
+            elif token.type == TokenType.EQUALITY:
+                self.eat(TokenType.EQUALITY)
+            elif token.type == TokenType.LOGIC_OR:
+                self.eat(TokenType.LOGIC_OR)
+            elif token.type == TokenType.LOGIC_AND:
+                self.eat(TokenType.LOGIC_AND)
+            elif token.type == TokenType.AND:
+                self.eat(TokenType.AND)
+            elif token.type == TokenType.OR:
+                self.eat(TokenType.OR)
 
             node = BinOp(left=node, op=token, right=self.term())
 
         return node
 
     def term(self):
-        """term : factor ((MUL | INTEGER_DIV | FLOAT_DIV) factor)*"""
+        """term : factor ((MUL | FLOAT_DIV | MODULO | POWER) factor)*"""
         node = self.factor()
 
         while self.current_token.type in (
                 TokenType.MUL,
                 TokenType.FLOAT_DIV,
+                TokenType.MODULO,
+                TokenType.POWER
         ):
             token = self.current_token
             if token.type == TokenType.MUL:
                 self.eat(TokenType.MUL)
             elif token.type == TokenType.FLOAT_DIV:
                 self.eat(TokenType.FLOAT_DIV)
+            elif token.type == TokenType.MODULO:
+                self.eat(TokenType.MODULO)
+            elif token.type == TokenType.POWER:
+                self.eat(TokenType.POWER)
 
             node = BinOp(left=node, op=token, right=self.factor())
 

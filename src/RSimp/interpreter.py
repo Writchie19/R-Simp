@@ -105,9 +105,31 @@ class Interpreter(NodeVisitor):
         elif node.op.type == TokenType.MUL:
             return self.visit(node.left) * self.visit(node.right)
         elif node.op.type == TokenType.FLOAT_DIV:
-            return self.visit(node.left) // self.visit(node.right)
-        elif node.op.type == TokenType.FLOAT_DIV:
             return float(self.visit(node.left)) / float(self.visit(node.right))
+        elif node.op.type == TokenType.MODULO:
+            return float(self.visit(node.left)) % float(self.visit(node.right))
+        elif node.op.type == TokenType.POWER:
+            return float(self.visit(node.left)) ** float(self.visit(node.right))
+        elif node.op.type == TokenType.LESS_THAN:
+            return float(self.visit(node.left)) < float(self.visit(node.right))
+        elif node.op.type == TokenType.LESS_OR_EQUAL:
+            return float(self.visit(node.left)) <= float(self.visit(node.right))
+        elif node.op.type == TokenType.GREAT_OR_EQUAL:
+            return float(self.visit(node.left)) >= float(self.visit(node.right))
+        elif node.op.type == TokenType.GREATER_THAN:
+            return float(self.visit(node.left)) > float(self.visit(node.right))
+        elif node.op.type == TokenType.NOT_EQUAL:
+            return self.visit(node.left) != self.visit(node.right)
+        elif node.op.type == TokenType.EQUALITY:
+            return self.visit(node.left) == self.visit(node.right)
+        elif node.op.type == TokenType.AND:
+            return int(self.visit(node.left)) & int(self.visit(node.right))
+        elif node.op.type == TokenType.OR:
+            return int(self.visit(node.left)) | int(self.visit(node.right))
+        elif node.op.type == TokenType.LOGIC_OR:
+            return self.visit(node.left) or self.visit(node.right)
+        elif node.op.type == TokenType.LOGIC_AND:
+            return self.visit(node.left) and self.visit(node.right)
 
     def visit_Num(self, node):
         return node.value

@@ -26,7 +26,6 @@ class TokenType(Enum):
 
     # Assignment Operators
     ASSIGN        = '='
-    LEFT_ASSIGN   = '<-'
 
     # Syntax
     LPAREN        = '('
