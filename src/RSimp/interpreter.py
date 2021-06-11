@@ -134,6 +134,9 @@ class Interpreter(NodeVisitor):
     def visit_Num(self, node):
         return node.value
 
+    def visit_Bool(self, node):
+        return node.value
+
     def visit_UnaryOp(self, node):
         op = node.op.type
         if op == TokenType.PLUS:

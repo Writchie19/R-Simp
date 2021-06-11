@@ -18,6 +18,10 @@ class Num(AST):
         self.token = token
         self.value = token.value
 
+class Bool(AST):
+    def __init__(self, token):
+        self.token = token
+        self.value = token.value
 
 class UnaryOp(AST):
     def __init__(self, op, expr):
@@ -427,6 +431,12 @@ class Parser:
         elif token.type == TokenType.NUMERIC:
             self.eat(TokenType.NUMERIC)
             return Num(token)
+        elif token.type == TokenType.BOOLTRUE:
+            self.eat(TokenType.BOOLTRUE)
+            return Bool(token)
+        elif token.type == TokenType.BOOLFALSE:
+            self.eat(TokenType.BOOLFALSE)
+            return Bool(token)
         elif token.type == TokenType.LPAREN:
             self.eat(TokenType.LPAREN)
             node = self.expr()

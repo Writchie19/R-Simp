@@ -44,7 +44,9 @@ class TokenType(Enum):
 
     # block of reserved words
     NUMERIC       = 'NUMERIC'
-    FUNCTION     = 'function'
+    BOOLTRUE      = 'TRUE'
+    BOOLFALSE     = 'FALSE'
+    FUNCTION      = 'function'
 
     # misc
     ID            = 'ID'
