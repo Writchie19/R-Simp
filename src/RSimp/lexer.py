@@ -171,6 +171,19 @@ class Lexer:
                 self.advance()
                 return token
 
+            if self.current_char == '!' and self.peek().isalpha():
+                self.advance()
+                token = self._id()
+                if token.type == TokenType.BOOLTRUE:
+                    token.type = TokenType.BOOLFALSE
+                    token.value = TokenType.BOOLFALSE.value
+                elif token.type == TokenType.BOOLFALSE:
+                    token.type = TokenType.BOOLTRUE
+                    token.value = TokenType.BOOLTRUE.value
+                else :
+                    self.error()
+                return token
+
             if self.current_char == '&' and self.peek() == '&':
                 token = Token(
                     type=TokenType.LOGIC_AND,

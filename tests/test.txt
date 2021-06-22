@@ -15,3 +15,8 @@ booleantrue = TRUE;
 booleanfalse = FALSE;
 booleanOr = booleantrue || booleanfalse;
 booleanAnd = booleantrue && booleanfalse;
+booleanequality = booleantrue == booleanfalse;
+booleanequality2 = booleantrue == TRUE;
+nottrue = !TRUE;
+notfalse = !FALSE;
+booleanAndNot = TRUE && !FALSE;
