@@ -230,6 +230,9 @@ class SemanticAnalyzer(NodeVisitor):
     def visit_Bool(self, node):
         pass
 
+    def visit_Str(self, node):
+        pass
+
     def visit_UnaryOp(self, node):
         pass
 

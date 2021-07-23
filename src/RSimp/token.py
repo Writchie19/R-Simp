@@ -35,7 +35,9 @@ class TokenType(Enum):
     COLON         = ':'
     COMMA         = ','
     LCURLY        = '{'
-    RCURLY        = '}'      # marks the end of the block
+    RCURLY        = '}'
+    STRDOUBLE     = '"'
+    STRSINGLE     = "'"      # marks the end of the block
 
     # Control Structures
     IF            = 'if'
@@ -106,3 +108,5 @@ def _build_reserved_keywords():
 
 
 RESERVED_KEYWORDS = _build_reserved_keywords()
+
+MAX_STRING_LENGTH = 65535

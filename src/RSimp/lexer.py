@@ -1,5 +1,5 @@
 from src.RSimp.errors import LexerError
-from src.RSimp.token import TokenType, Token, RESERVED_KEYWORDS
+from src.RSimp.token import MAX_STRING_LENGTH, TokenType, Token, RESERVED_KEYWORDS
 
 class Lexer:
     def __init__(self, text):
@@ -49,7 +49,7 @@ class Lexer:
             self.advance()
         self.advance()  # the closing curly brace
 
-    def number(self):
+    def create_number(self):
         """Return a (multidigit) integer or float consumed from the input."""
 
         # Create a new token with current line and column number
@@ -71,6 +71,26 @@ class Lexer:
         token.type = TokenType.NUMERIC
         token.value = float(result)
 
+        return token
+
+    def create_string(self, token_type):
+        # Create a new token with current line and column number
+        token = Token(type=token_type, value=None, lineno=self.lineno, column=self.column)
+        result = ''
+        count = 0
+        while self.current_char is not None and self.current_char != token_type.value and count <= MAX_STRING_LENGTH:
+            result += self.current_char
+            count += 1
+            self.advance()
+
+        if count >= MAX_STRING_LENGTH:
+            while self.current_char is not None and self.current_char != token_type:
+                self.advance
+            result += self.current_char
+        else:
+            self.advance()
+
+        token.value = result
         return token
 
     def _id(self):
@@ -114,7 +134,15 @@ class Lexer:
                 return self._id()
 
             if self.current_char.isdigit():
-                return self.number()
+                return self.create_number()
+
+            if self.current_char == '"':
+                self.advance()
+                return self.create_string(TokenType.STRDOUBLE)
+
+            if self.current_char == "'":
+                self.advance()
+                return self.create_string(TokenType.STRSINGLE)
 
             if self.current_char == '<' and self.peek() == '-':
                 token = Token(

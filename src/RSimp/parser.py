@@ -23,6 +23,11 @@ class Bool(AST):
         self.token = token
         self.value = token.value
 
+class Str(AST):
+    def __init__(self, token):
+        self.token = token
+        self.value = token.value
+
 class UnaryOp(AST):
     def __init__(self, op, expr):
         self.token = self.op = op
@@ -415,7 +420,7 @@ class Parser:
         """factor : PLUS factor
                   | MINUS factor
                   | INTEGER_CONST
-                  | REAL_CONST
+                  | BOOL
                   | LPAREN expr RPAREN
                   | variable
         """
@@ -437,6 +442,12 @@ class Parser:
         elif token.type == TokenType.BOOLFALSE:
             self.eat(TokenType.BOOLFALSE)
             return Bool(token)
+        elif token.type == TokenType.STRSINGLE:
+            self.eat(TokenType.STRSINGLE)
+            return Str(token)
+        elif token.type == TokenType.STRDOUBLE:
+            self.eat(TokenType.STRDOUBLE)
+            return Str(token)
         elif token.type == TokenType.LPAREN:
             self.eat(TokenType.LPAREN)
             node = self.expr()

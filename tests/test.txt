@@ -20,3 +20,6 @@ booleanequality2 = booleantrue == TRUE;
 nottrue = !TRUE;
 notfalse = !FALSE;
 booleanAndNot = TRUE && !FALSE;
+string1 = "Test" + "String" + "Double";
+string2 = 'Test' + 'String' + 'Single';
+string3 = string1 + string2
