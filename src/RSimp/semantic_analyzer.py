@@ -151,6 +151,9 @@ class SemanticAnalyzer(NodeVisitor):
         for child in node.children:
             self.visit(child)
 
+    def visit_IfStatement(self, node):
+        pass
+
     def visit_NoOp(self, node):
         pass
 

@@ -40,9 +40,9 @@ class TokenType(Enum):
     STRSINGLE     = "'"      # marks the end of the block
 
     # Control Structures
-    IF            = 'if'
-    WHILE         = 'while'
-    FOR           = 'for'
+    IF            = 'IF'
+    WHILE         = 'WHILE'
+    FOR           = 'FOR'
 
     # block of reserved words
     NUMERIC       = 'NUMERIC'
@@ -84,17 +84,8 @@ def _build_reserved_keywords():
     """Build a dictionary of reserved keywords.
     The function relies on the fact that in the TokenType
     enumeration the beginning of the block of reserved keywords is
-    marked with PROGRAM and the end of the block is marked with
-    the END keyword.
-    Result:
-        {'PROGRAM': <TokenType.PROGRAM: 'PROGRAM'>,
-         'INTEGER': <TokenType.INTEGER: 'INTEGER'>,
-         'REAL': <TokenType.REAL: 'REAL'>,
-         'DIV': <TokenType.INTEGER_DIV: 'DIV'>,
-         'VAR': <TokenType.VAR: 'VAR'>,
-         'PROCEDURE': <TokenType.PROCEDURE: 'PROCEDURE'>,
-         'BEGIN': <TokenType.BEGIN: 'BEGIN'>,
-         'END': <TokenType.END: 'END'>}
+    marked with IF and the end of the block is marked with
+    the EOF keyword.
     """
     # enumerations support iteration, in definition order
     tt_list = list(TokenType)

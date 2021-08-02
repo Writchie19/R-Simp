@@ -84,6 +84,11 @@ class Param(AST):
     def __init__(self, var_node):
         self.var_node = var_node
 
+class IfStatement(AST):
+    """Represents and if statement: if (...) {...} """
+    def __init__(self, bool_node, compound_node):
+        self.bool_node = bool_node
+        self.compound_node = compound_node
 
 class ProcedureDecl(AST):
     def __init__(self, proc_name, formal_params, block_node):
@@ -272,6 +277,18 @@ class Parser:
 
         return root
 
+    def if_statement(self):
+        """if_statement :
+            IF (LPAREN factor RPAREN) LCURLY compound RCURLY
+        """
+        self.eat(TokenType.IF)
+        self.eat(TokenType.LPAREN)
+        bool_node = self.expr()
+        self.eat(TokenType.RPAREN)
+        compound_node = self.compound_statement()
+        root = IfStatement(bool_node, compound_node)
+        return root
+
     def statement_list(self):
         """
         statement_list : statement
@@ -302,6 +319,9 @@ class Parser:
             node = self.proccall_statement()
         elif self.current_token.type == TokenType.ID:
             node = self.assignment_statement()
+        elif (self.current_token.type == TokenType.IF
+        ):
+            node = self.if_statement()
         else:
             node = self.empty()
         return node
@@ -390,7 +410,7 @@ class Parser:
 
             node = BinOp(left=node, op=token, right=self.term())
 
-        return node
+        return node        
 
     def term(self):
         """term : factor ((MUL | FLOAT_DIV | MODULO | POWER) factor)*"""

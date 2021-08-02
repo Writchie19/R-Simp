@@ -135,7 +135,12 @@ class Interpreter(NodeVisitor):
         return node.value
 
     def visit_Bool(self, node):
-        return node.value
+        if (node.value == TokenType.BOOLTRUE.value):
+            return True
+        elif (node.value == TokenType.BOOLFALSE.value):
+            return False
+        else:
+            return None
 
     def visit_Str(self, node):
         return node.value
@@ -199,6 +204,11 @@ class Interpreter(NodeVisitor):
         self.log(str(self.call_stack))
 
         self.call_stack.pop()
+
+    def visit_IfStatement(self, node):
+        bool_result = self.visit(node.bool_node)
+        if (bool_result != None and bool_result == True):
+            self.visit(node.compound_node)
 
     def interpret(self):
         tree = self.tree
