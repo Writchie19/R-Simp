@@ -1,6 +1,7 @@
-from os import initgroups
+from os import error, initgroups
+from src.RSimp import token
 from src.RSimp.errors import ErrorCode, ParserError
-from src.RSimp.token import TokenType 
+from src.RSimp.token import Token, TokenType 
 
 class AST:
     pass
@@ -86,9 +87,9 @@ class Param(AST):
 
 class IfStatement(AST):
     """Represents and if statement: if (...) {...} """
-    def __init__(self, bool_node, compound_node):
-        self.bool_node = bool_node
-        self.compound_node = compound_node
+    def __init__(self):
+        self.bool_nodes = []
+        self.compound_nodes = []
 
 class ProcedureDecl(AST):
     def __init__(self, proc_name, formal_params, block_node):
@@ -111,6 +112,7 @@ class Parser:
         self.lexer = lexer
         # set current token to the first token taken from the input
         self.current_token = self.get_next_token()
+        self.previous_token = None
 
     def get_next_token(self):
         return self.lexer.get_next_token()
@@ -128,6 +130,7 @@ class Parser:
         # and assign the next token to the self.current_token,
         # otherwise raise an exception.
         if self.current_token.type == token_type:
+            self.previous_token = self.current_token
             self.current_token = self.get_next_token()
         else:
             self.error(
@@ -279,14 +282,28 @@ class Parser:
 
     def if_statement(self):
         """if_statement :
-            IF (LPAREN factor RPAREN) LCURLY compound RCURLY
+            IF (LPAREN expr RPAREN) LCURLY compound RCURLY
         """
-        self.eat(TokenType.IF)
-        self.eat(TokenType.LPAREN)
-        bool_node = self.expr()
-        self.eat(TokenType.RPAREN)
-        compound_node = self.compound_statement()
-        root = IfStatement(bool_node, compound_node)
+        root = IfStatement()
+        if self.current_token.type == TokenType.IF:
+            self.eat(TokenType.IF)
+            self.eat(TokenType.LPAREN)
+            root.bool_nodes.append(self.expr())
+            self.eat(TokenType.RPAREN)
+            root.compound_nodes.append(self.compound_statement())
+
+            while self.current_token.type == TokenType.ELSE:
+                self.eat(TokenType.ELSE)
+                if self.current_token.type == TokenType.IF:
+                    self.eat(TokenType.IF)
+                    self.eat(TokenType.LPAREN)
+                    root.bool_nodes.append(self.expr())
+                    self.eat(TokenType.RPAREN)
+                    root.compound_nodes.append(self.compound_statement())
+                else:
+                    root.bool_nodes.append(Bool(TokenType.BOOLTRUE))
+                    root.compound_nodes.append(self.compound_statement())
+        
         return root
 
     def statement_list(self):
@@ -298,8 +315,19 @@ class Parser:
 
         results = [node]
 
-        while self.current_token.type == TokenType.SEMI:
-            self.eat(TokenType.SEMI)
+        while self.current_token.type == TokenType.SEMI or self.current_token.type == TokenType.RCURLY or self.previous_token.type == TokenType.RCURLY:
+            if self.current_token.type == TokenType.SEMI: 
+                self.eat(TokenType.SEMI)
+                if self.current_token.type == TokenType.RCURLY: break
+            elif self.current_token.type == TokenType.RCURLY:
+                if self.previous_token.type == TokenType.RCURLY:
+                    break
+                elif self.previous_token.type != TokenType.SEMI:
+                    self.error(
+                        error_code=ErrorCode.UNEXPECTED_TOKEN,
+                        token=self.previous_token.type,
+                    )
+
             results.append(self.statement())
 
         return results
@@ -319,8 +347,7 @@ class Parser:
             node = self.proccall_statement()
         elif self.current_token.type == TokenType.ID:
             node = self.assignment_statement()
-        elif (self.current_token.type == TokenType.IF
-        ):
+        elif self.current_token.type == TokenType.IF:
             node = self.if_statement()
         else:
             node = self.empty()

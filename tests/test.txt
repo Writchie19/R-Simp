@@ -1,15 +1,23 @@
 if (TRUE) { 
     x = 5; 
-};
+}
 if (FALSE) { 
     y = 7; 
-};
+}
+else if (x == 5) {
+    x = 4;
+} 
+else {
+    x = 14;
+}
 if (x >= 4 && x < 6) { 
     z = 13;
     if (z > x) {
         y = z + x;
-    } 
-};
+    } else {
+        y = z - x;
+    }
+}
 add <- 9 + 4;
 power = add ^ 2;
 addmult = 4 + 2 * 3;

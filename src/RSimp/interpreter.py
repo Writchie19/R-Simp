@@ -206,9 +206,11 @@ class Interpreter(NodeVisitor):
         self.call_stack.pop()
 
     def visit_IfStatement(self, node):
-        bool_result = self.visit(node.bool_node)
-        if (bool_result != None and bool_result == True):
-            self.visit(node.compound_node)
+        for bool_node,compound_node in zip(node.bool_nodes, node.compound_nodes):
+            bool_result = self.visit(bool_node)
+            if (bool_result != None and bool_result == True):
+                self.visit(compound_node)
+                return
 
     def interpret(self):
         tree = self.tree

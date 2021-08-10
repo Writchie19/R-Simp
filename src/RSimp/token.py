@@ -41,6 +41,7 @@ class TokenType(Enum):
 
     # Control Structures
     IF            = 'IF'
+    ELSE          = 'ELSE'
     WHILE         = 'WHILE'
     FOR           = 'FOR'
 
