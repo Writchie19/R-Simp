@@ -130,6 +130,25 @@ class Lexer:
                 self.skip_comment()
                 continue
 
+            # Check for vector initialization c(...)
+            if self.current_char == 'c':
+                if self.peek().isspace():
+                    self.advance()
+                    self.skip_whitespace()
+
+                # Create a new token with current line and column number
+                token = Token(type=None, value=None, lineno=self.lineno, column=self.column)
+
+                if self.peek() == '(':
+                    token.type = TokenType.VECTOR
+                    token.value = TokenType.VECTOR.value
+                else:
+                    token.type = TokenType.ID
+                    token.value = TokenType.ID.value
+                
+                self.advance()
+                return token
+
             if self.current_char.isalpha():
                 return self._id()
 
@@ -207,7 +226,7 @@ class Lexer:
                     token.value = TokenType.BOOLFALSE.value
                 elif token.type == TokenType.BOOLFALSE:
                     token.type = TokenType.BOOLTRUE
-                    token.value = TokenType.BOOLTRUE.value
+                    token.value = TokenType.BOOLTRUE.value                    
                 else :
                     self.error()
                 return token

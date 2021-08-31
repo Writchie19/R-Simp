@@ -1,12 +1,26 @@
+
+vectorstr = c("This", "is", "a", "test");
+one = 1;
+truee = TRUE;
+vectornum = c(one, one + one, 4 - one, 4);
+vectorbool = c(truee, TRUE, FALSE);
+multitypevector1 = c("a", "b", 2, 3, TRUE);
+multitypevector2 = c(TRUE, FALSE, 2, 3);
+multitypevector3 = c(2,3,"asdf");
+xtempstr = "asdf";
+multitypevector4 = c(1,2.2,xtempstr);
 if (TRUE) { 
     x = 5; 
 }
 if (FALSE) { 
     y = 7; 
 }
+else if (x == 6) {
+    x = 7;
+}
 else if (x == 5) {
     x = 4;
-} 
+}  
 else {
     x = 14;
 }

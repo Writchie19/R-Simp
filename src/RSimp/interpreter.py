@@ -1,6 +1,6 @@
 from enum import Enum
 from src.RSimp.token import TokenType
-from src.RSimp.parser import NodeVisitor
+from src.RSimp.parser import NodeVisitor, Num
 from src.RSimp import cmd_line_globals
 
 class ARType(Enum):
@@ -162,6 +162,28 @@ class Interpreter(NodeVisitor):
 
         ar = self.call_stack.peek()
         ar[var_name] = var_value
+
+    def visit_Vector(self, node):
+        temp_value = []
+        vector_value = []
+        primary_type = None # used to ensure all of the vector items are the appropriate type
+
+        # c(token, token, token ...)
+        for token in node.value:
+            token_value = self.visit(token)
+            temp_value.append(token_value)
+
+            if primary_type is not str and isinstance(token_value, str):
+                primary_type = str
+            elif (primary_type not in (str, float) and isinstance(token_value, float)):
+                primary_type = float
+            elif primary_type not in (str, float, int, bool) and isinstance(token_value, bool):
+                primary_type = bool
+
+        for token in temp_value:
+            vector_value.append(primary_type(token))
+
+        return vector_value
 
     def visit_Var(self, node):
         var_name = node.value

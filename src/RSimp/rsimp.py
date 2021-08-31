@@ -38,9 +38,9 @@ class RSimp():
 
     def run_with_cmd_args(self):
         parser = argparse.ArgumentParser(
-            description='SPI - Simple Pascal Interpreter'
+            description='SPI - Simple R Interpreter'
         )
-        parser.add_argument('inputfile', help='Pascal source file')
+        parser.add_argument('inputfile', help='R source file')
         parser.add_argument(
             '--scope',
             help='Print scope information',

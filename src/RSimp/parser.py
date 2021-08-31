@@ -29,6 +29,11 @@ class Str(AST):
         self.token = token
         self.value = token.value
 
+class Vector(AST):
+    def __init__(self, token, value):
+        self.token = token
+        self.value = value
+
 class UnaryOp(AST):
     def __init__(self, op, expr):
         self.token = self.op = op
@@ -86,10 +91,16 @@ class Param(AST):
         self.var_node = var_node
 
 class IfStatement(AST):
-    """Represents and if statement: if (...) {...} """
+    """Represents an if statement: if (...) {...} """
     def __init__(self):
         self.bool_nodes = []
         self.compound_nodes = []
+
+class ForLoop(AST):
+    """Represents a for loop: for (...) {...}"""
+    def __init__(self, conditional_statement, compound_statement):
+        self.conditional_statement = conditional_statement
+        self.compound_statement = compound_statement
 
 class ProcedureDecl(AST):
     def __init__(self, proc_name, formal_params, block_node):
@@ -282,7 +293,7 @@ class Parser:
 
     def if_statement(self):
         """if_statement :
-            IF (LPAREN expr RPAREN) LCURLY compound RCURLY
+            IF LPAREN expr RPAREN LCURLY compound RCURLY
         """
         root = IfStatement()
         if self.current_token.type == TokenType.IF:
@@ -305,6 +316,19 @@ class Parser:
                     root.compound_nodes.append(self.compound_statement())
         
         return root
+
+    # def for_loop(self):
+    #     """ for_loop:
+    #         FOR LPAREN in_expr RPAREN LCURLY compound RCURLY
+    #     """
+    #     self.eat(TokenType.FOR)
+    #     self.eat(TokenType.LPAREN)
+    #     conditional_node = self.in_expr()
+    #     self.eat(TokenType.RPAREN)
+    #     compound_node = self.compound_statement
+    #     return ForLoop(conditional_node, compound_node)
+
+
 
     def statement_list(self):
         """
@@ -349,6 +373,8 @@ class Parser:
             node = self.assignment_statement()
         elif self.current_token.type == TokenType.IF:
             node = self.if_statement()
+        # elif self.current_token.type == TokenType.FOR:
+        #     node = self.for_loop()
         else:
             node = self.empty()
         return node
@@ -384,9 +410,14 @@ class Parser:
         assignment_statement : variable ASSIGN expr
         """
         left = self.variable()
+        right = None
         token = self.current_token
         self.eat(TokenType.ASSIGN)
-        right = self.expr()
+        if self.current_token.type is TokenType.VECTOR:
+            right = self.vector()
+        else:
+            right = self.expr()
+
         node = Assign(left, token, right)
         return node
 
@@ -402,9 +433,35 @@ class Parser:
         """An empty production"""
         return NoOp()
 
+    def in_expr(self):
+        """
+            variable in list/vector | number:number
+        """
+
+    def vector(self):
+        """
+        vector : (STR, STR ,STR ...) | (NUM, NUM, NUM ...) | (BOOL, BOOL, BOOL ...)
+        """
+        params = []
+        token = self.current_token
+        self.eat(TokenType.VECTOR)
+        self.eat(TokenType.LPAREN)
+
+        # Needs to come after eating vector and lparen to save the input type for the vector
+        node = self.expr()
+        params.append(node)
+        
+        while self.current_token.type is TokenType.COMMA:
+            self.eat(TokenType.COMMA)
+            params.append(self.expr())
+    
+        self.eat(TokenType.RPAREN)
+        return Vector(token, params)
+
+
     def expr(self):
         """
-        expr : term ((PLUS | MINUS) term)*
+        expr : term ((PLUS | MINUS | LESS_THAN | LESS_OR_EQUAL | GREAT_OR_EQUAL | GREATER_THAN | NOT_EQUAL | EQUALITY | LOGIC_OR | LOGIC_AND | AND | OR) term)*
         """
         node = self.term()
 
