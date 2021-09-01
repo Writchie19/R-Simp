@@ -29,10 +29,16 @@ class Str(AST):
         self.token = token
         self.value = token.value
 
-class Vector(AST):
+class CVector(AST):
     def __init__(self, token, value):
         self.token = token
         self.value = value
+
+class Vector(AST):
+    def __init__(self, token, start, end):
+        self.token = token
+        self.start = start
+        self.end = end
 
 class UnaryOp(AST):
     def __init__(self, op, expr):
@@ -413,10 +419,7 @@ class Parser:
         right = None
         token = self.current_token
         self.eat(TokenType.ASSIGN)
-        if self.current_token.type is TokenType.VECTOR:
-            right = self.vector()
-        else:
-            right = self.expr()
+        right = self.expr()
 
         node = Assign(left, token, right)
         return node
@@ -438,26 +441,39 @@ class Parser:
             variable in list/vector | number:number
         """
 
-    def vector(self):
+    def c_vector(self):
         """
         vector : (STR, STR ,STR ...) | (NUM, NUM, NUM ...) | (BOOL, BOOL, BOOL ...)
         """
         params = []
         token = self.current_token
-        self.eat(TokenType.VECTOR)
+        self.eat(TokenType.CVECTOR)
         self.eat(TokenType.LPAREN)
 
         # Needs to come after eating vector and lparen to save the input type for the vector
         node = self.expr()
         params.append(node)
-        
+
         while self.current_token.type is TokenType.COMMA:
             self.eat(TokenType.COMMA)
             params.append(self.expr())
     
         self.eat(TokenType.RPAREN)
-        return Vector(token, params)
+        return CVector(token, params)
 
+    def vector(self):
+        """
+        vector : NUM:NUM
+        """
+        token = self.current_token
+        self.eat(TokenType.VECTOR)
+        start_token = token
+        start_token.type = TokenType.NUMERIC
+        start_node = Num(start_token)
+        self.eat(TokenType.COLON)
+        end_node = Num(self.current_token)
+        self.eat(TokenType.NUMERIC)
+        return Vector(token, start_node, end_node)
 
     def expr(self):
         """
@@ -526,40 +542,44 @@ class Parser:
                   | INTEGER_CONST
                   | BOOL
                   | LPAREN expr RPAREN
+                  | VECTOR
                   | variable
         """
         token = self.current_token
+        node = None
         if token.type == TokenType.PLUS:
             self.eat(TokenType.PLUS)
             node = UnaryOp(token, self.factor())
-            return node
         elif token.type == TokenType.MINUS:
             self.eat(TokenType.MINUS)
             node = UnaryOp(token, self.factor())
-            return node
         elif token.type == TokenType.NUMERIC:
             self.eat(TokenType.NUMERIC)
-            return Num(token)
+            node =  Num(token)               
         elif token.type == TokenType.BOOLTRUE:
             self.eat(TokenType.BOOLTRUE)
-            return Bool(token)
+            node =  Bool(token)
         elif token.type == TokenType.BOOLFALSE:
             self.eat(TokenType.BOOLFALSE)
-            return Bool(token)
+            node =  Bool(token)
         elif token.type == TokenType.STRSINGLE:
             self.eat(TokenType.STRSINGLE)
-            return Str(token)
+            node =  Str(token)
         elif token.type == TokenType.STRDOUBLE:
             self.eat(TokenType.STRDOUBLE)
-            return Str(token)
+            node = Str(token)
         elif token.type == TokenType.LPAREN:
             self.eat(TokenType.LPAREN)
             node = self.expr()
             self.eat(TokenType.RPAREN)
-            return node
+        elif token.type == TokenType.CVECTOR:
+            node = self.c_vector()
+        elif token.type == TokenType.VECTOR:
+            node = self.vector()
         else:
             node = self.variable()
-            return node
+
+        return node
 
     def parse(self):
         """

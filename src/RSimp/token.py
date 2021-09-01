@@ -28,7 +28,8 @@ class TokenType(Enum):
     ASSIGN        = '='
 
     # Syntax
-    VECTOR        = 'c'
+    CVECTOR       = 'c'
+    VECTOR        = 'start'
     LPAREN        = '('
     RPAREN        = ')'
     SEMI          = ';'

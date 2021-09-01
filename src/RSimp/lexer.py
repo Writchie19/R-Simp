@@ -1,3 +1,4 @@
+from src.RSimp.parser import Vector
 from src.RSimp.errors import LexerError
 from src.RSimp.token import MAX_STRING_LENGTH, TokenType, Token, RESERVED_KEYWORDS
 
@@ -45,7 +46,7 @@ class Lexer:
             self.advance()
 
     def skip_comment(self):
-        while self.current_char != '#':
+        while self.current_char != '#' and self.current_char != '\n':
             self.advance()
         self.advance()  # the closing curly brace
 
@@ -67,8 +68,11 @@ class Lexer:
             while self.current_char is not None and self.current_char.isdigit():
                 result += self.current_char
                 self.advance()
-
-        token.type = TokenType.NUMERIC
+        self.skip_whitespace()
+        if (self.current_char == ':'):
+            token.type = TokenType.VECTOR
+        else:
+            token.type = TokenType.NUMERIC
         token.value = float(result)
 
         return token
@@ -139,13 +143,11 @@ class Lexer:
                 # Create a new token with current line and column number
                 token = Token(type=None, value=None, lineno=self.lineno, column=self.column)
 
-                if self.peek() == '(':
-                    token.type = TokenType.VECTOR
-                    token.value = TokenType.VECTOR.value
-                else:
-                    token.type = TokenType.ID
-                    token.value = TokenType.ID.value
+                if self.peek() != '(':
+                    return self._id()
                 
+                token.type = TokenType.CVECTOR
+                token.value = TokenType.CVECTOR.value
                 self.advance()
                 return token
 
@@ -218,6 +220,7 @@ class Lexer:
                 self.advance()
                 return token
 
+            #TODO this does not work for !ID fix it
             if self.current_char == '!' and self.peek().isalpha():
                 self.advance()
                 token = self._id()

@@ -163,7 +163,7 @@ class Interpreter(NodeVisitor):
         ar = self.call_stack.peek()
         ar[var_name] = var_value
 
-    def visit_Vector(self, node):
+    def visit_CVector(self, node):
         temp_value = []
         vector_value = []
         primary_type = None # used to ensure all of the vector items are the appropriate type
@@ -171,7 +171,11 @@ class Interpreter(NodeVisitor):
         # c(token, token, token ...)
         for token in node.value:
             token_value = self.visit(token)
-            temp_value.append(token_value)
+            if isinstance(token_value, list):
+                for item in token_value:
+                    temp_value.append(item)
+            else:
+                temp_value.append(token_value)
 
             if primary_type is not str and isinstance(token_value, str):
                 primary_type = str
@@ -184,6 +188,11 @@ class Interpreter(NodeVisitor):
             vector_value.append(primary_type(token))
 
         return vector_value
+
+    def visit_Vector(self, node):
+        start_value = int(self.visit(node.start))
+        end_value = int(self.visit(node.end))
+        return [*range(start_value,end_value+1,1)]
 
     def visit_Var(self, node):
         var_name = node.value

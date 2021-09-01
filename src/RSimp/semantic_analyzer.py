@@ -218,9 +218,13 @@ class SemanticAnalyzer(NodeVisitor):
         # left-hand side
         self.visit(node.left)
 
-    def visit_Vector(self, node):
+    def visit_CVector(self, node):
         for token in node.value:
             self.visit(token)
+
+    def visit_Vector(self, node):
+        self.visit(node.start)
+        self.visit(node.end)
 
     def visit_Var(self, node):
         var_name = node.value
