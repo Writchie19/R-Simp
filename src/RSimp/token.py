@@ -38,6 +38,8 @@ class TokenType(Enum):
     COMMA         = ','
     LCURLY        = '{'
     RCURLY        = '}'
+    LBRACKET      = '['
+    RBRACKET      = ']'
     STRDOUBLE     = '"'
     STRSINGLE     = "'"      # marks the end of the block
 

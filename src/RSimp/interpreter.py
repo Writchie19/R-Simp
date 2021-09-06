@@ -159,12 +159,22 @@ class Interpreter(NodeVisitor):
     def visit_Assign(self, node):
         var_name = node.left.value
         var_value = self.visit(node.right)
+        index = None
+        if node.left.index != None:
+            index = self.visit(node.left.index)
 
         ar = self.call_stack.peek()
-        ar[var_name] = var_value
+        if index != None:
+            init_type = type(ar[var_name][0])
+            primary_type = self.find_primetype(init_type, var_value)
+            if not isinstance(init_type, primary_type):
+                ar[var_name] = list(map(primary_type, ar[var_name]))
+
+            ar[var_name][self.convert_to_index(index)] = primary_type(var_value)
+        else:
+            ar[var_name] = var_value
 
     def visit_CVector(self, node):
-        temp_value = []
         vector_value = []
         primary_type = None # used to ensure all of the vector items are the appropriate type
 
@@ -173,19 +183,14 @@ class Interpreter(NodeVisitor):
             token_value = self.visit(token)
             if isinstance(token_value, list):
                 for item in token_value:
-                    temp_value.append(item)
+                    vector_value.append(item)
+                    primary_type = self.find_primetype(primary_type, item)
             else:
-                temp_value.append(token_value)
+                vector_value.append(token_value)
 
-            if primary_type is not str and isinstance(token_value, str):
-                primary_type = str
-            elif (primary_type not in (str, float) and isinstance(token_value, float)):
-                primary_type = float
-            elif primary_type not in (str, float, int, bool) and isinstance(token_value, bool):
-                primary_type = bool
+            primary_type = self.find_primetype(primary_type, token_value)
 
-        for token in temp_value:
-            vector_value.append(primary_type(token))
+        vector_value = list(map(primary_type, vector_value))
 
         return vector_value
 
@@ -196,9 +201,41 @@ class Interpreter(NodeVisitor):
 
     def visit_Var(self, node):
         var_name = node.value
+        index = None
 
         ar = self.call_stack.peek()
         var_value = ar.get(var_name)
+
+        if node.index != None:
+            index = self.visit(node.index)
+        
+        if index != None:
+            if isinstance(index, list):
+                value = []
+                negatives = []
+                booleans = []
+                for idx in index:
+                    if idx < 0:
+                        negatives.append(idx)
+                    elif isinstance(idx, bool):
+                        booleans.append(idx)
+                    else:
+                        value.append(var_value[self.convert_to_index(idx)])
+                
+                if len(negatives) != 0:
+                    value = var_value
+                    for negative in negatives:
+                        value.pop(self.convert_to_index(negative))
+
+                if len(booleans) != 0:
+                    value = []
+                    for idx, boolean in enumerate(booleans):
+                        if boolean:
+                            value.append(var_value[idx])
+                    
+                return value
+
+            return var_value[self.convert_to_index(index)]
 
         return var_value
 
@@ -242,6 +279,22 @@ class Interpreter(NodeVisitor):
             if (bool_result != None and bool_result == True):
                 self.visit(compound_node)
                 return
+
+    def find_primetype(self, init_type, new_type):
+        if init_type is not str and isinstance(new_type, str):
+            return str
+        elif init_type not in (str, float) and isinstance(new_type, float):
+            return float
+        elif init_type not in (str, float, int, bool) and isinstance(new_type, bool):
+            return bool
+        return init_type
+
+    def convert_to_index(self, index):
+        if index == 0 or type(index) not in (bool, int, float):
+            return None
+        
+        # Subtract 1 from the index because python uses zero based indexing whereas R is 1 based indexing
+        return int(abs(index))-1
 
     def interpret(self):
         tree = self.tree

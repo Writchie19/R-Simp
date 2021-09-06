@@ -61,9 +61,10 @@ class Assign(AST):
 
 class Var(AST):
     """The Var node is constructed out of ID token."""
-    def __init__(self, token):
+    def __init__(self, token, index):
         self.token = token
         self.value = token.value
+        self.index = index
 
 
 class NoOp(AST):
@@ -194,7 +195,7 @@ class Parser:
             self.eat(TokenType.ID)
 
         for param_token in param_tokens:
-            param_node = Param(Var(param_token))
+            param_node = Param(Var(param_token, None))
             param_nodes.append(param_node)
 
         return param_nodes
@@ -428,8 +429,14 @@ class Parser:
         """
         variable : ID
         """
-        node = Var(self.current_token)
+        node = Var(self.current_token, None)
         self.eat(TokenType.ID)
+        
+        if self.current_token.type is TokenType.LBRACKET:
+            self.eat(TokenType.LBRACKET)
+            node.index = self.expr()
+            self.eat(TokenType.RBRACKET)
+
         return node
 
     def empty(self):

@@ -1,14 +1,28 @@
 colonopvector = 1:10;
+colonopvector[1] = 11;
+index1 = colonopvector[1];
 vectorstr = c("This", "is", "a", "test",colonopvector);
+index2 = vectorstr[2*2-3];
+colonopvector[2] = "test";
+vectorstr2 = colonopvector;
+vectorstr2[4] = 6;
+
+range1 = 1:5;
+indexwithindex = colonopvector[range1[1]];
+indexwithvector = colonopvector[range1];
+
 one = 1;
 truee = TRUE;
-vectornum = c(one, one + one, 4 - one, 4);
+vectornum1 = c(one, one + one, 4 - one, 4);
 vectorbool = c(truee, TRUE, FALSE);
+indexwithvectorbool = vectornum1[vectorbool];
+indexwithnegatives = vectornum1[c(-1,-2)];
 multitypevector1 = c("a", "b", 2, 3, TRUE);
 multitypevector2 = c(TRUE, FALSE, 2, 3);
 multitypevector3 = c(2,3,"asdf");
 xtempstr = "asdf";
-multitypevector4 = c(1,2.2,xtempstr, vectornum);
+multitypevector4 = c(1,2.2,xtempstr, vectornum1);
+
 if (TRUE) { 
     x = 5; 
 }
@@ -32,6 +46,7 @@ if (x >= 4 && x < 6) {
         y = z - x;
     }
 }
+
 add <- 9 + 4;
 power = add ^ 2;
 addmult = 4 + 2 * 3;
