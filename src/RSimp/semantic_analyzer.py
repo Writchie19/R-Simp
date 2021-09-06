@@ -154,6 +154,15 @@ class SemanticAnalyzer(NodeVisitor):
     def visit_IfStatement(self, node):
         pass
 
+    def visit_ForLoop(self, node):
+        self.visit(node.var_node)
+        self.visit(node.vector_node)
+        self.visit(node.compound_statement)
+
+    def visit_WhileLoop(self, node):
+        self.visit(node.expr_node)
+        self.visit(node.compound_statement)
+
     def visit_NoOp(self, node):
         pass
 
@@ -242,6 +251,12 @@ class SemanticAnalyzer(NodeVisitor):
         pass
 
     def visit_Str(self, node):
+        pass
+
+    def visit_Break(self, node):
+        pass
+
+    def visit_Continue(self, node):
         pass
 
     def visit_UnaryOp(self, node):

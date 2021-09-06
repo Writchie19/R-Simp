@@ -29,6 +29,16 @@ class Str(AST):
         self.token = token
         self.value = token.value
 
+class Break(AST):
+    def __init__(self, token):
+        self.token = token
+        self.value = token.value
+
+class Continue(AST):
+    def __init__(self, token):
+        self.token = token
+        self.value = token.value
+
 class CVector(AST):
     def __init__(self, token, value):
         self.token = token
@@ -99,14 +109,23 @@ class Param(AST):
 
 class IfStatement(AST):
     """Represents an if statement: if (...) {...} """
-    def __init__(self):
+    def __init__(self, token):
+        self.token = token
         self.bool_nodes = []
         self.compound_nodes = []
 
 class ForLoop(AST):
     """Represents a for loop: for (...) {...}"""
-    def __init__(self, conditional_statement, compound_statement):
-        self.conditional_statement = conditional_statement
+    def __init__(self, token, var_node,vector_node, compound_statement):
+        self.token = token
+        self.var_node = var_node
+        self.vector_node = vector_node
+        self.compound_statement = compound_statement
+
+class WhileLoop(AST):
+    def __init__(self, token, expression_node, compound_statement):
+        self.token = token
+        self.expr_node = expression_node
         self.compound_statement = compound_statement
 
 class ProcedureDecl(AST):
@@ -302,7 +321,7 @@ class Parser:
         """if_statement :
             IF LPAREN expr RPAREN LCURLY compound RCURLY
         """
-        root = IfStatement()
+        root = IfStatement(self.current_token)
         if self.current_token.type == TokenType.IF:
             self.eat(TokenType.IF)
             self.eat(TokenType.LPAREN)
@@ -324,18 +343,41 @@ class Parser:
         
         return root
 
-    # def for_loop(self):
-    #     """ for_loop:
-    #         FOR LPAREN in_expr RPAREN LCURLY compound RCURLY
-    #     """
-    #     self.eat(TokenType.FOR)
-    #     self.eat(TokenType.LPAREN)
-    #     conditional_node = self.in_expr()
-    #     self.eat(TokenType.RPAREN)
-    #     compound_node = self.compound_statement
-    #     return ForLoop(conditional_node, compound_node)
+    def for_loop(self):
+        """ for_loop:
+            FOR LPAREN ID IN (VECTOR | CVECTOR | ID) RPAREN LCURLY compound_statement RCURLY
+        """
+        token = self.current_token
+        self.eat(TokenType.FOR)
+        self.eat(TokenType.LPAREN)
 
+        var_node = self.variable()
+        vector_node = None
 
+        self.eat(TokenType.IN)
+        if self.current_token.type is TokenType.VECTOR:
+            vector_node = self.vector()
+        elif self.current_token.type is TokenType.CVECTOR:
+            vector_node = self.c_vector()
+        elif self.current_token.type is TokenType.ID:
+            vector_node = self.variable()
+
+        self.eat(TokenType.RPAREN)
+        compound_node = self.compound_statement()
+        return ForLoop(token,var_node, vector_node, compound_node)
+
+    def while_loop(self):
+        """
+            WHOLE LPAREN expr RPAREN LCURLY compound_statement RCURLY
+        """
+        token = self.current_token
+        self.eat(TokenType.WHILE)
+        self.eat(TokenType.LPAREN)
+        
+        node = self.expr()
+        self.eat(TokenType.RPAREN)
+        compound_node = self.compound_statement()
+        return WhileLoop(token, node, compound_node)
 
     def statement_list(self):
         """
@@ -372,16 +414,24 @@ class Parser:
         """
         if self.current_token.type == TokenType.LCURLY:
             node = self.compound_statement()
-        elif (self.current_token.type == TokenType.ID and
+        elif (self.current_token.type is TokenType.ID and
               self.lexer.current_char == '('
         ):
             node = self.proccall_statement()
-        elif self.current_token.type == TokenType.ID:
+        elif self.current_token.type is TokenType.ID:
             node = self.assignment_statement()
-        elif self.current_token.type == TokenType.IF:
+        elif self.current_token.type is TokenType.IF:
             node = self.if_statement()
-        # elif self.current_token.type == TokenType.FOR:
-        #     node = self.for_loop()
+        elif self.current_token.type is TokenType.FOR:
+            node = self.for_loop()
+        elif self.current_token.type is TokenType.WHILE:
+            node = self.while_loop()
+        elif self.current_token.type is TokenType.BREAK:
+            node = Break(self.current_token)
+            self.eat(TokenType.BREAK)
+        elif self.current_token.type is TokenType.CONTINUE:
+            node = Continue(self.current_token)
+            self.eat(TokenType.CONTINUE)
         else:
             node = self.empty()
         return node
@@ -442,11 +492,6 @@ class Parser:
     def empty(self):
         """An empty production"""
         return NoOp()
-
-    def in_expr(self):
-        """
-            variable in list/vector | number:number
-        """
 
     def c_vector(self):
         """

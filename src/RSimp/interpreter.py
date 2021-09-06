@@ -1,5 +1,5 @@
 from enum import Enum
-from src.RSimp.token import TokenType
+from src.RSimp.token import Token, TokenType
 from src.RSimp.parser import NodeVisitor, Num
 from src.RSimp import cmd_line_globals
 
@@ -44,6 +44,9 @@ class ActivationRecord:
 
     def get(self, key):
         return self.members.get(key)
+    
+    def remove(self, key):
+        return self.members.pop(key, None)
 
     def __str__(self):
         lines = [
@@ -66,6 +69,8 @@ class Interpreter(NodeVisitor):
     def __init__(self, tree):
         self.tree = tree
         self.call_stack = CallStack()
+        self.can_break_or_continue = False
+        self.is_break = False
 
     def log(self, msg):
         if cmd_line_globals._SHOULD_LOG_STACK:
@@ -145,6 +150,12 @@ class Interpreter(NodeVisitor):
     def visit_Str(self, node):
         return node.value
 
+    def visit_Break(self, node):
+        pass
+
+    def visit_Continue(self, node):
+        pass
+
     def visit_UnaryOp(self, node):
         op = node.op.type
         if op == TokenType.PLUS:
@@ -154,6 +165,11 @@ class Interpreter(NodeVisitor):
 
     def visit_Compound(self, node):
         for child in node.children:
+            if self.can_break_or_continue and child.token.type is TokenType.BREAK:
+                self.is_break = True
+                return
+            elif self.can_break_or_continue and child.token.type is TokenType.CONTINUE:
+                return
             self.visit(child)
 
     def visit_Assign(self, node):
@@ -279,6 +295,35 @@ class Interpreter(NodeVisitor):
             if (bool_result != None and bool_result == True):
                 self.visit(compound_node)
                 return
+    
+    def visit_ForLoop(self, node):
+        self.can_break_or_continue = True
+        vector = self.visit(node.vector_node)
+        self.visit(node.var_node)
+        var_name = node.var_node.value
+        ar = self.call_stack.peek()
+
+        for value in vector:
+            ar[var_name] = value
+            self.visit(node.compound_statement)
+            if self.is_break:
+                self.is_break = False
+                break
+
+        # Remove the var so we can keep limited scope
+        ar.remove(var_name)
+        self.can_break_or_continue = False
+
+    def visit_WhileLoop(self, node):
+        self.can_break_or_continue = True
+        bool_result = self.visit(node.expr_node)
+        while bool_result:
+            self.visit(node.compound_statement)
+            if self.is_break:
+                self.is_break = False
+                break
+            bool_result = self.visit(node.expr_node)
+        self.can_break_or_continue = False
 
     def find_primetype(self, init_type, new_type):
         if init_type is not str and isinstance(new_type, str):

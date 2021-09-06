@@ -54,10 +54,12 @@ class TokenType(Enum):
     BOOLTRUE      = 'TRUE'
     BOOLFALSE     = 'FALSE'
     FUNCTION      = 'function'
+    BREAK         = 'BREAK'
+    CONTINUE      = 'CONTINUE'
 
     # misc
     ID            = 'ID'
-    IN            = 'in'
+    IN            = 'IN'
     EOF           = 'EOF'
 
 

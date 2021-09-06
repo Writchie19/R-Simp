@@ -1,4 +1,57 @@
+testwhileloop = 1;
+testwhileloop2 = 10;
+testwhileloopresult = 0;
+while (testwhileloop < 10) {
+    testwhileloop = testwhileloop + 1;
+    testwhileloopresult = testwhileloop;
+}
+
+testwhileloopbool = TRUE;
+while (testwhileloopbool == TRUE) {
+    testwhileloop = testwhileloop - 1;
+    if (testwhileloop < 0) {
+        testwhileloopbool = FALSE;
+    }
+}
+
+count = 0;
+while (TRUE) {
+    count = count + 1;
+    if (count >= 15) {
+        break;
+    }
+    continue;
+    count = 100;
+}
+
+varinfor = 0;
+for (var in 1:10) {
+    varinfor = varinfor + var ^ 2;
+}
+for (var in c(1,2,3,4,5)) {
+    varinfor = varinfor - var ^ 3;
+}
+for (var in c("This", "is", "a", "test")) {
+    varinfor2 = var;
+}
+
+for (var in 1:10) {
+    if (var >= 8) {
+        break;
+    }
+    continue;
+    count = 100;
+}
 colonopvector = 1:10;
+for (var in colonopvector) {
+    varinfor3 = varinfor + var ^ 2;
+}
+nestedFor = 1;
+for (var in 1:10) {
+    for (var2 in 1:10) {
+        nestedFor = nestedFor * var2;
+    }
+}
 colonopvector[1] = 11;
 index1 = colonopvector[1];
 vectorstr = c("This", "is", "a", "test",colonopvector);
