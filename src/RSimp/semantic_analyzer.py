@@ -192,7 +192,7 @@ class SemanticAnalyzer(NodeVisitor):
             self.current_scope.insert(var_symbol)
             proc_symbol.formal_params.append(var_symbol)
 
-        self.visit(node.block_node)
+        self.visit(node.compound_statement)
 
         self.log(procedure_scope)
 
@@ -200,7 +200,7 @@ class SemanticAnalyzer(NodeVisitor):
         self.log(f'LEAVE scope: {proc_name}')
 
         # accessed by the interpreter when executing procedure call
-        proc_symbol.block_ast = node.block_node
+        proc_symbol.block_ast = node.compound_statement
 
     # def visit_VarDecl(self, node):
     #     type_name = node.type_node.value

@@ -1,3 +1,11 @@
+myfirstfunction = function(a,b,c) {
+    a = a + 2;
+    b = b + 2;
+    c = c + 2;
+}
+
+myfirstfunction(1,2,3);
+
 testwhileloop = 1;
 testwhileloop2 = 10;
 testwhileloopresult = 0;

@@ -41,6 +41,13 @@ class Lexer:
         else:
             return self.text[peek_pos]
 
+    def peekSkipWhitespace(self):
+        peek_pos = self.pos + 1
+        while peek_pos <= len(self.text) - 1:
+            if not self.text[peek_pos].isspace():
+                return self.text[peek_pos]
+            peek_pos += 1
+            
     def skip_whitespace(self):
         while self.current_char is not None and self.current_char.isspace():
             self.advance()
@@ -136,14 +143,10 @@ class Lexer:
 
             # Check for vector initialization c(...)
             if self.current_char == 'c':
-                if self.peek().isspace():
-                    self.advance()
-                    self.skip_whitespace()
-
                 # Create a new token with current line and column number
                 token = Token(type=None, value=None, lineno=self.lineno, column=self.column)
 
-                if self.peek() != '(':
+                if self.peekSkipWhitespace() != '(':
                     return self._id()
                 
                 token.type = TokenType.CVECTOR

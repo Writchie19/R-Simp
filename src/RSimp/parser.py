@@ -129,10 +129,10 @@ class WhileLoop(AST):
         self.compound_statement = compound_statement
 
 class ProcedureDecl(AST):
-    def __init__(self, proc_name, formal_params, block_node):
+    def __init__(self, proc_name, formal_params, compound_statement):
         self.proc_name = proc_name
         self.formal_params = formal_params  # a list of Param nodes
-        self.block_node = block_node
+        self.compound_statement = compound_statement
 
 
 class ProcedureCall(AST):
@@ -210,6 +210,8 @@ class Parser:
         self.eat(TokenType.ID)
         while self.current_token.type == TokenType.COMMA:
             self.eat(TokenType.COMMA)
+            if self.current_token.type == TokenType.VECTOR and self.current_token.value == 'c':
+                self.current_token.type = TokenType.ID
             param_tokens.append(self.current_token)
             self.eat(TokenType.ID)
 
@@ -254,25 +256,23 @@ class Parser:
     #     ]
     #     return var_declarations
 
-    def procedure_declaration(self):
+    def function_declaration(self, id):
         """procedure_declaration :
-             PROCEDURE ID (LPAREN formal_parameter_list RPAREN)? SEMI block SEMI
+            FUNCTION LPAREN formal_parameter_list RPAREN LCURLY compound_statement RCURLY
         """
-        self.eat(TokenType.FUNCTION)
-        proc_name = self.current_token.value
-        self.eat(TokenType.ID)
-        formal_params = []
+        if id is not None:
+            self.eat(TokenType.FUNCTION)
+            proc_name = id+'_1'
+            formal_params = []
 
-        if self.current_token.type == TokenType.LPAREN:
-            self.eat(TokenType.LPAREN)
-            formal_params = self.formal_parameter_list()
-            self.eat(TokenType.RPAREN)
+            if self.current_token.type == TokenType.LPAREN:
+                self.eat(TokenType.LPAREN)
+                formal_params = self.formal_parameters()
+                self.eat(TokenType.RPAREN)
 
-        self.eat(TokenType.SEMI)
-        block_node = self.block()
-        proc_decl = ProcedureDecl(proc_name, formal_params, block_node)
-        self.eat(TokenType.SEMI)
-        return proc_decl
+            node = self.compound_statement()
+            proc_decl = ProcedureDecl(proc_name, formal_params, node)
+            return proc_decl
 
     def program(self):
         block_node = self.block()
@@ -417,7 +417,7 @@ class Parser:
         elif (self.current_token.type is TokenType.ID and
               self.lexer.current_char == '('
         ):
-            node = self.proccall_statement()
+            node = self.function_call_statement()
         elif self.current_token.type is TokenType.ID:
             node = self.assignment_statement()
         elif self.current_token.type is TokenType.IF:
@@ -436,11 +436,11 @@ class Parser:
             node = self.empty()
         return node
 
-    def proccall_statement(self):
+    def function_call_statement(self):
         """proccall_statement : ID LPAREN (expr (COMMA expr)*)? RPAREN"""
         token = self.current_token
 
-        proc_name = self.current_token.value
+        proc_name = self.current_token.value + '_1'
         self.eat(TokenType.ID)
         self.eat(TokenType.LPAREN)
         actual_params = []
@@ -470,7 +470,7 @@ class Parser:
         right = None
         token = self.current_token
         self.eat(TokenType.ASSIGN)
-        right = self.expr()
+        right = self.expr(left.value)
 
         node = Assign(left, token, right)
         return node
@@ -527,11 +527,11 @@ class Parser:
         self.eat(TokenType.NUMERIC)
         return Vector(token, start_node, end_node)
 
-    def expr(self):
+    def expr(self, id = None):
         """
         expr : term ((PLUS | MINUS | LESS_THAN | LESS_OR_EQUAL | GREAT_OR_EQUAL | GREATER_THAN | NOT_EQUAL | EQUALITY | LOGIC_OR | LOGIC_AND | AND | OR) term)*
         """
-        node = self.term()
+        node = self.term(id)
 
         while self.current_token.type in (TokenType.PLUS, TokenType.MINUS, TokenType.LESS_THAN, TokenType.LESS_OR_EQUAL, TokenType.GREAT_OR_EQUAL, TokenType.GREATER_THAN, TokenType.NOT_EQUAL, TokenType.EQUALITY, TokenType.LOGIC_OR, TokenType.LOGIC_AND, TokenType.AND, TokenType.OR):
             token = self.current_token
@@ -560,13 +560,13 @@ class Parser:
             elif token.type == TokenType.OR:
                 self.eat(TokenType.OR)
 
-            node = BinOp(left=node, op=token, right=self.term())
+            node = BinOp(left=node, op=token, right=self.term(id))
 
         return node        
 
-    def term(self):
+    def term(self, id = None):
         """term : factor ((MUL | FLOAT_DIV | MODULO | POWER) factor)*"""
-        node = self.factor()
+        node = self.factor(id)
 
         while self.current_token.type in (
                 TokenType.MUL,
@@ -584,11 +584,11 @@ class Parser:
             elif token.type == TokenType.POWER:
                 self.eat(TokenType.POWER)
 
-            node = BinOp(left=node, op=token, right=self.factor())
+            node = BinOp(left=node, op=token, right=self.factor(id))
 
         return node
 
-    def factor(self):
+    def factor(self, id = None):
         """factor : PLUS factor
                   | MINUS factor
                   | INTEGER_CONST
@@ -628,6 +628,8 @@ class Parser:
             node = self.c_vector()
         elif token.type == TokenType.VECTOR:
             node = self.vector()
+        elif token.type == TokenType.FUNCTION:
+            node = self.function_declaration(id)
         else:
             node = self.variable()
 

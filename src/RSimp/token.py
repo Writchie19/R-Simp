@@ -53,7 +53,7 @@ class TokenType(Enum):
     NUMERIC       = 'NUMERIC'
     BOOLTRUE      = 'TRUE'
     BOOLFALSE     = 'FALSE'
-    FUNCTION      = 'function'
+    FUNCTION      = 'FUNCTION'
     BREAK         = 'BREAK'
     CONTINUE      = 'CONTINUE'
 
